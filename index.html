@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Dasher Jefferson</title>
+    <style>
+        body { margin: 0; background: #000; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; overflow: hidden; }
+        /* Fundo Roxo da sua imagem */
+        #game { position: relative; width: 800px; height: 400px; background: #2e0094; border-bottom: 8px solid #1a0052; overflow: hidden; }
+        /* Player Verde Limão */
+        #player { width: 40px; height: 40px; background: #44fb1b; position: absolute; bottom: 0; left: 100px; border: 2px solid #fff; z-index: 10; }
+        /* Menus */
+        .menu { position: absolute; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        .btn { padding: 15px; margin: 5px; width: 300px; cursor: pointer; border: none; font-weight: bold; border-radius: 5px; text-transform: uppercase; }
+        .btn-green { background: #44fb1b; }
+        .btn-red { background: #ff4444; color: white; }
+        .btn-yellow { background: #ffcc00; }
+        .btn-blue { background: #3498db; color: white; }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="main_menu" class="menu">
+            <h1 style="color: #44fb1b">GEOMETRY DASHER</h1>
+            <button class="btn btn-green" onclick="comecar()">NÍVEL FÁCIL</button>
+            <button class="btn btn-red" onclick="comecar()">NÍVEL DIFÍCIL</button>
+            <button class="btn btn-yellow" onclick="abrir('loja')">LOJA DE BONECOS</button>
+            <button class="btn btn-blue" onclick="abrir('idioma')">IDIOMA / LANGUAGE</button>
+        </div>
+
+        <div id="loja" class="menu" style="display:none">
+            <h2 style="color:white">ESCOLHA SUA COR</h2>
+            <button class="btn btn-red" onclick="mudar('#ff4444')">VERMELHO</button>
+            <button class="btn btn-blue" onclick="mudar('#3498db')">AZUL</button>
+            <button class="btn" onclick="abrir('main_menu')">VOLTAR</button>
+        </div>
+
+        <div id="idioma" class="menu" style="display:none">
+            <button class="btn" onclick="alert('Português Ativado'); abrir('main_menu')">🇧🇷 Português</button>
+            <button class="btn" onclick="alert('English Active'); abrir('main_menu')">🇺🇸 English</button>
+            <button class="btn" onclick="abrir('main_menu')">VOLTAR</button>
+        </div>
+
+        <div id="player"></div>
+    </div>
+
+    <script>
+        function abrir(id) {
+            document.querySelectorAll('.menu').forEach(m => m.style.display = 'none');
+            document.getElementById(id).style.display = 'flex';
+        }
+        function mudar(cor) { document.getElementById('player').style.backgroundColor = cor; }
+        function comecar() { 
+            document.getElementById('main_menu').style.display = 'none';
+            alert("O jogo vai começar!"); 
+        }
+    </script>
+</body>
+</html>
