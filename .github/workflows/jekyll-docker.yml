@@ -1,20 +1,178 @@
-name: Jekyll site CI
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Geometry Dasher Pro - Jefferson</title>
+    <style>
+        body { margin: 0; background-color: #000; display: flex; align-items: center; justify-content: center; height: 100vh; color: white; font-family: 'Arial Black', sans-serif; overflow: hidden; }
+        
+        /* O Cenário Roxo da sua foto (image_b5c9bf) */
+        #game_container { 
+            position: relative; width: 800px; height: 400px; background: #2e0094; 
+            background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 50px 50px; border-bottom: 10px solid #1a0052; overflow: hidden;
+            border-radius: 10px; box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+        /* O Boneco Verde (image_b5c9bf) */
+        #player { 
+            width: 40px; height: 40px; background-color: #44fb1b; border: 3px solid #fff; 
+            position: absolute; bottom: 0; left: 100px; z-index: 100; box-shadow: 0 0 15px #44fb1b;
+        }
 
-jobs:
-  build:
+        .obstacle { width: 40px; height: 40px; background: linear-gradient(#000, #2e0094); border: 2px solid #fff; position: absolute; bottom: 0; }
+        .coin { width: 30px; height: 30px; background: #ffcc00; border: 3px solid #ff9900; border-radius: 50%; position: absolute; bottom: 120px; box-shadow: 0 0 10px #ffcc00; }
 
-    runs-on: ubuntu-latest
+        /* HUD - Moedas e Mortes (image_b623f5) */
+        .hud { position: absolute; top: 15px; left: 20px; font-size: 20px; z-index: 200; display: flex; gap: 30px; text-shadow: 2px 2px #000; }
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: Build the site in the jekyll/builder container
-      run: |
-        docker run \
-        -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future"
+        /* MENU PRINCIPAL (image_b639e2) */
+        .menu-layer { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; z-index: 500; 
+        }
+        
+        .btn { 
+            border: none; padding: 18px; margin: 8px; border-radius: 8px; 
+            font-size: 18px; font-weight: bold; cursor: pointer; width: 320px; 
+            text-transform: uppercase; transition: 0.2s; pointer-events: auto;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-facil { background: #44fb1b; color: #000; }
+        .btn-dificil { background: #ff4444; color: #fff; }
+        .btn-loja { background: #ffcc00; color: #000; }
+        .btn-idioma { background: #3498db; color: #fff; }
+
+        .jump-anim { animation: jump 0.6s linear; }
+        @keyframes jump { 
+            0% { bottom: 0; transform: rotate(0deg); } 
+            50% { bottom: 150px; transform: rotate(180deg); } 
+            100% { bottom: 0; transform: rotate(360deg); } 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game_container">
+        <div class="hud">
+            <span id="txt_mortes">💀 0</span>
+            <span style="color:#ffcc00">🟡 <span id="val_moedas">0</span></span>
+        </div>
+
+        <div id="menu_principal" class="menu-layer">
+            <h1 id="main_title" style="color: #44fb1b; font-size: 40px; margin-bottom: 20px;">GEOMETRY DASHER</h1>
+            <button class="btn btn-facil" id="btn_e" onclick="iniciar('facil')">NÍVEL FÁCIL</button>
+            <button class="btn btn-dificil" id="btn_h" onclick="iniciar('dificil')">NÍVEL DIFÍCIL</button>
+            <button class="btn btn-loja" id="btn_s" onclick="abrirMenu('menu_loja')">LOJA DE BONECOS</button>
+            <button class="btn btn-idioma" id="btn_i" onclick="abrirMenu('menu_idioma')">IDIOMA / LANGUAGE</button>
+        </div>
+
+        <div id="menu_loja" class="menu-layer" style="display:none">
+            <h2 id="shop_title" style="color:#ffcc00">LOJA (50 MOEDAS)</h2>
+            <div style="display:flex; gap:15px; margin-bottom:20px">
+                <div style="width:50px;height:50px;background:#ff4444;border:2px solid #fff;cursor:pointer" onclick="mudarCor('#ff4444')"></div>
+                <div style="width:50px;height:50px;background:#3498db;border:2px solid #fff;cursor:pointer" onclick="mudarCor('#3498db')"></div>
+                <div style="width:50px;height:50px;background:#f1c40f;border:2px solid #fff;cursor:pointer" onclick="mudarCor('#f1c40f')"></div>
+            </div>
+            <button class="btn" style="background:#555" onclick="abrirMenu('menu_principal')">VOLTAR</button>
+        </div>
+
+        <div id="menu_idioma" class="menu-layer" style="display:none">
+            <button class="btn btn-idioma" onclick="setIdioma('pt')">Português 🇧🇷</button>
+            <button class="btn btn-idioma" onclick="setIdioma('en')">English 🇺🇸</button>
+            <button class="btn btn-idioma" onclick="setIdioma('es')">Español 🇪🇸</button>
+            <button class="btn btn-idioma" onclick="setIdioma('fr')">Français 🇫🇷</button>
+            <button class="btn" style="background:#555" onclick="abrirMenu('menu_principal')">VOLTAR</button>
+        </div>
+
+        <div id="player"></div>
+    </div>
+
+    <script>
+        const player = document.getElementById("player");
+        let moedas = parseInt(localStorage.getItem('moedas_jeff')) || 0;
+        let mortes = 0;
+        let gameActive = false;
+        let isJumping = false;
+        let speed = 8;
+
+        const langData = {
+            pt: {e: "NÍVEL FÁCIL", h: "NÍVEL DIFÍCIL", s: "LOJA DE BONECOS", i: "IDIOMA", shop: "LOJA (50 MOEDAS)"},
+            en: {e: "EASY LEVEL", h: "HARD LEVEL", s: "SKIN SHOP", i: "LANGUAGE", shop: "SHOP (50 COINS)"},
+            es: {e: "NIVEL FÁCIL", h: "NIVEL DIFÍCIL", s: "TIENDA", i: "IDIOMA", shop: "TIENDA (50 MONEDAS)"},
+            fr: {e: "NIVEAU FACILE", h: "NIVEAU DIFFICILE", s: "BOUTIQUE", i: "LANGUE", shop: "BOUTIQUE (50 PIÈCES)"}
+        };
+
+        function setIdioma(l) {
+            document.getElementById("btn_e").innerText = langData[l].e;
+            document.getElementById("btn_h").innerText = langData[l].h;
+            document.getElementById("btn_s").innerText = langData[l].s;
+            document.getElementById("btn_i").innerText = langData[l].i;
+            document.getElementById("shop_title").innerText = langData[l].shop;
+            abrirMenu('menu_principal');
+        }
+
+        function updateHUD() {
+            document.getElementById("val_moedas").innerText = moedas;
+            document.getElementById("txt_mortes").innerText = "💀 " + mortes;
+        }
+
+        function abrirMenu(id) {
+            document.querySelectorAll('.menu-layer').forEach(m => m.style.display = 'none');
+            document.getElementById(id).style.display = 'flex';
+        }
+
+        function mudarCor(c) { player.style.backgroundColor = c; }
+
+        function iniciar(nivel) {
+            gameActive = true;
+            speed = (nivel === 'dificil') ? 16 : 9;
+            document.getElementById("menu_principal").style.display = "none";
+            loop();
+        }
+
+        function jump() {
+            if (isJumping || !gameActive) return;
+            isJumping = true;
+            player.classList.add("jump-anim");
+            setTimeout(() => { player.classList.remove("jump-anim"); isJumping = false; }, 600);
+        }
+
+        function loop() {
+            if (!gameActive) return;
+            const isCoin = Math.random() > 0.7;
+            const obj = document.createElement("div");
+            obj.className = isCoin ? "coin" : "obstacle";
+            obj.style.right = "-50px";
+            document.getElementById("game_container").appendChild(obj);
+
+            let pos = 800;
+            let move = setInterval(() => {
+                pos -= speed;
+                obj.style.left = pos + "px";
+                
+                let p = player.getBoundingClientRect();
+                let o = obj.getBoundingClientRect();
+
+                if (p.right > o.left && p.left < o.right && p.bottom > o.top && p.top < o.bottom) {
+                    if (isCoin) {
+                        moedas++; localStorage.setItem('moedas_jeff', moedas);
+                        updateHUD(); obj.remove(); clearInterval(move);
+                    } else {
+                        gameActive = false; mortes++; updateHUD();
+                        abrirMenu('menu_principal'); clearInterval(move); obj.remove();
+                    }
+                }
+                if (pos < -50) { clearInterval(move); obj.remove(); }
+            }, 20);
+            setTimeout(loop, Math.random() * 1200 + 700);
+        }
+
+        document.addEventListener("keydown", (e) => { if(e.code === "Space") jump(); });
+        document.getElementById("game_container").addEventListener("mousedown", jump);
+        updateHUD();
+    </script>
+</body>
+</html>
